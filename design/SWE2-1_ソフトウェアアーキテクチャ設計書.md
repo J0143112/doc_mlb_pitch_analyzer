@@ -4,9 +4,11 @@
 | 項目 | 内容 |
 |---|---|
 | 文書ID | SWE2-1 |
-| バージョン | 1.0 |
+| バージョン | 1.1 |
 | 作成日 | 2026-05-22 |
-| 上位要件 | SWE1-1 ソフトウェア要件仕様書 |
+| 更新日 | 2026-05-25 |
+| 変更内容 | REQ-006対応: VelocityAnalyzer クラスを追加 |
+| 上位要件 | SWE1-1 ソフトウェア要件仕様書 v1.1 |
 
 ---
 
@@ -21,7 +23,8 @@ src/
 │   ├── __init__.py
 │   ├── pitch_mix.py          # REQ-002: 球種分析
 │   ├── sequence.py           # REQ-003: 配球シーケンス分析
-│   └── metrics.py            # ERA/WHIP/FIP等の指標計算
+│   ├── metrics.py            # ERA/WHIP/FIP等の指標計算
+│   └── velocity.py           # REQ-006: 球速分析 ★v1.1追加
 └── visualizer/
     ├── __init__.py
     └── zone_chart.py         # REQ-004: ゾーンヒートマップ
@@ -50,6 +53,9 @@ src/
       │
       ├──▶ [analyzer/metrics.py]
       │       ERA / WHIP / FIP / K9 / BB9
+      │
+      ├──▶ [analyzer/velocity.py]          ★v1.1追加
+      │       球種別球速統計 / 最速球
       │
       └──▶ [visualizer/zone_chart.py]
               ゾーンヒートマップ PNG出力
@@ -124,6 +130,34 @@ def calc_fip(hr: int, bb: int, hbp: int, k: int,
     """FIP計算"""
 ```
 
+### 3-5. `analyzer/velocity.py` ★v1.1追加（REQ-006対応）
+
+```python
+class VelocityAnalyzer:
+    def __init__(self, data: pd.DataFrame) -> None: ...
+
+    def by_pitch_type(self) -> dict[str, dict[str, float]]:
+        """
+        球種別球速統計を返す。（REQ-006-01）
+
+        Returns:
+            {pitch_type: {"mean": float, "max": float, "min": float}}
+            release_speed列なし/全NaN/空DataFrameの場合は空dict（REQ-006-03）
+        """
+
+    def fastest_pitch(self) -> tuple[str, float] | None:
+        """
+        全投球中の最速球を返す。（REQ-006-02）
+
+        Returns:
+            (pitch_type, speed) のタプル。データなしはNone（REQ-006-03）
+        """
+```
+
+**設計上の注意点**：
+- `release_speed` 列が存在しない場合・全行NaNの場合は安全に空を返す（NFR-003と同様の防御的設計）
+- 速度は小数点1桁に丸める（mph単位で0.1精度で十分）
+
 ---
 
 ## 4. 例外クラス
@@ -171,4 +205,7 @@ target_pitchers:
 | REQ-003-01 | analyzer/sequence.py | `transition_matrix()` |
 | REQ-003-02 | analyzer/sequence.py | `next_pitch_top3()` |
 | REQ-004-01 | visualizer/zone_chart.py | `plot_zone()` |
+| REQ-006-01 | analyzer/velocity.py | `by_pitch_type()` |
+| REQ-006-02 | analyzer/velocity.py | `fastest_pitch()` |
+| REQ-006-03 | analyzer/velocity.py | 両メソッドの空データ処理 |
 | NFR-003 | analyzer/metrics.py | 全calc_*関数 |

@@ -4,8 +4,10 @@
 | 項目 | 内容 |
 |---|---|
 | 文書ID | SWE1-1 |
-| バージョン | 1.0 |
+| バージョン | 1.1 |
 | 作成日 | 2026-05-22 |
+| 更新日 | 2026-05-25 |
+| 変更内容 | REQ-006 球速分析機能を追加 |
 | ステータス | Draft |
 
 ---
@@ -68,6 +70,13 @@ MLB 投手の Statcast データを取得・分析し、配球傾向をレポー
 | REQ-005-01 | 分析結果をテキスト形式でコンソール出力できること | Must |
 | REQ-005-02 | 分析結果をPNG画像として保存できること | Should |
 
+### REQ-006: 球速分析機能 ★v1.1追加
+| ID | 要件 | 優先度 |
+|---|---|---|
+| REQ-006-01 | 球種別の平均球速・最速・最遅を集計できること | Must |
+| REQ-006-02 | 全投球中の最速球（球種と速度）を返せること | Must |
+| REQ-006-03 | 球速データが存在しない場合は空dictまたはNoneを返すこと（NFR-003準拠） | Must |
+
 ---
 
 ## 4. 非機能要件
@@ -89,6 +98,8 @@ MLB 投手の Statcast データを取得・分析し、配球傾向をレポー
 | 奪三振 = 0 | K/9 = 0.0, K/BB = None |
 | データなし投手 | `PitcherNotFoundError` を送出 |
 | 全球が同一球種 | シーケンス行列は自己遷移100% |
+| 球速データなし（release_speed列が全NaN） | by_pitch_type()は空dict, fastest_pitch()はNone |
+| 投球データが空DataFrame | 球速分析は空dict / None を返す |
 
 ---
 
@@ -100,4 +111,7 @@ MLB 投手の Statcast データを取得・分析し、配球傾向をレポー
 | REQ-002-01 | `analyzer/pitch_mix.py` | `test_analyzer.py::test_pitch_mix_ratio` |
 | REQ-002-03 | `analyzer/pitch_mix.py` | `test_analyzer.py::test_pitch_mix_by_count` |
 | REQ-003-01 | `analyzer/sequence.py` | `test_analyzer.py::test_sequence_matrix` |
+| REQ-006-01 | `analyzer/velocity.py` | `test_velocity.py::TestVelocityByPitchType` |
+| REQ-006-02 | `analyzer/velocity.py` | `test_velocity.py::TestFastestPitch` |
+| REQ-006-03 | `analyzer/velocity.py` | `test_velocity.py::test_empty_returns_none` |
 | NFR-003 | `analyzer/metrics.py` | `test_metrics.py::test_era_zero_innings` |
